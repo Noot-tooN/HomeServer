@@ -35,6 +35,8 @@
 
   services.jellyfin = {
     enable = true;
+    user = "media";
+    group = "media";
   };
 
   # Set your time zone.
@@ -62,6 +64,13 @@
     description = "nirdala";
     extraGroups = ["networkmanager" "wheel"];
     shell = pkgs.zsh;
+  };
+
+  users.users.media = {
+    isSystemUser = true;
+    group = "media";
+    description = "media";
+    uid = 1025;
   };
 
   environment.variables = {
