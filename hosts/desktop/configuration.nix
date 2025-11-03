@@ -56,6 +56,11 @@
     shell = pkgs.zsh;
   };
 
+  environment.variables = {
+    EDITOR = "vim";
+    VISUAL = "vim";
+  };
+
   # Enable automatic login for the user.
   services.getty.autologinUser = "nirdala";
 
