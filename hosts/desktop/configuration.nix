@@ -25,6 +25,13 @@
   # Enable networking
   networking.networkmanager.enable = true;
 
+  services.dnsmasq = {
+    enable = true;
+    settings = {
+      "address" = ["/homeserver.com/100.82.238.95"];
+    };
+  };
+
   services.tailscale = {
     enable = true;
     useRoutingFeatures = "client"; # maybe use both?
