@@ -32,6 +32,29 @@
     };
   };
 
+  services.caddy = {
+    enable = true;
+
+    # Use Caddy's local CA so no public ACME needed.
+    globalConfig = ''
+      {
+        local_certs
+      }
+    '';
+
+    extraConfig = ''
+      https://torrent.homeserver.com {
+        tls internal
+        reverse_proxy 127.0.0.1:8080
+      }
+
+      https://media.homeserver.com {
+        tls internal
+        reverse_proxy 127.0.0.1:8096
+      }
+    '';
+  };
+
   services.tailscale = {
     enable = true;
     useRoutingFeatures = "client"; # maybe use both?
@@ -135,6 +158,8 @@
     enable = true;
 
     trustedInterfaces = ["tailscale0"];
+
+    allowedTCPPorts = [443];
   };
 
   # This value determines the NixOS release from which the default
