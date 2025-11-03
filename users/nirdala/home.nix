@@ -22,4 +22,14 @@
     enable = true;
     enableZshIntegration = true;
   };
+
+  programs.kitty = {
+    enable = true;
+    settings = {
+      window_padding_width = 10;
+
+      font_size = 14;
+    };
+    themeFile = "tokyo_night_night";
+  };
 }

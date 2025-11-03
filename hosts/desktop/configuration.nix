@@ -57,13 +57,13 @@
     isNormalUser = true;
     description = "nirdala";
     extraGroups = ["networkmanager" "wheel"];
-    packages = with pkgs; [];
     shell = pkgs.zsh;
   };
 
   environment.variables = {
     EDITOR = "vim";
     VISUAL = "vim";
+    TERMINAL = "kitty";
   };
 
   # Enable automatic login for the user.
