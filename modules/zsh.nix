@@ -14,5 +14,13 @@ in {
 
     syntaxHighlighting.enable = true;
     autosuggestion.enable = true;
+
+    shellAliases = {
+      flake-switch-here = "(
+        sudo nix flake update && 
+        sudo nixos-rebuild switch --flake .#desktop
+      )";
+      flake-switch-etc = "(cd /etc/nixos && flake-switch-here)";
+    };
   };
 }
