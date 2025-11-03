@@ -33,6 +33,10 @@
     authKeyFile = "/etc/tailscale/authkey";
   };
 
+  services.jellyfin = {
+    enable = true;
+  };
+
   # Set your time zone.
   time.timeZone = "Europe/Belgrade";
 
@@ -67,7 +71,7 @@
   };
 
   # Enable automatic login for the user.
-  services.getty.autologinUser = "nirdala";
+  # services.getty.autologinUser = "nirdala";
 
   # Allow unfree packages
   nixpkgs.config.allowUnfree = true;
