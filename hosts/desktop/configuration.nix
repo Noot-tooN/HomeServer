@@ -35,23 +35,11 @@
   services.caddy = {
     enable = true;
 
-    # Use Caddy's local CA so no public ACME needed.
-    globalConfig = ''
-      {
-        local_certs
-      }
+    virtualHosts."torrent.homeserver.com".extraConfig = ''
+      reverse_proxy http://127.0.0.1:8080
     '';
-
-    extraConfig = ''
-      https://torrent.homeserver.com {
-        tls internal
-        reverse_proxy 127.0.0.1:8080
-      }
-
-      https://media.homeserver.com {
-        tls internal
-        reverse_proxy 127.0.0.1:8096
-      }
+    virtualHosts."media.homeserver.com".extraConfig = ''
+      reverse_proxy http://127.0.0.1:8096
     '';
   };
 
