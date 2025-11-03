@@ -79,6 +79,8 @@
     uid = 1025;
   };
 
+  users.groups.media = {gid = 1025;};
+
   environment.variables = {
     EDITOR = "vim";
     VISUAL = "vim";
