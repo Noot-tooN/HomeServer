@@ -39,6 +39,12 @@
     group = "media";
   };
 
+  services.qbittorrent = {
+    enable = true;
+    user = "media";
+    group = "media";
+  };
+
   # Set your time zone.
   time.timeZone = "Europe/Belgrade";
 
