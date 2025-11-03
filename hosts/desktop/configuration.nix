@@ -39,6 +39,12 @@
     group = "media";
   };
 
+  services.jackett = {
+    enable = true;
+    user = "media";
+    group = "media";
+  };
+
   services.qbittorrent = {
     enable = true;
     user = "media";
@@ -68,7 +74,7 @@
   users.users.nirdala = {
     isNormalUser = true;
     description = "nirdala";
-    extraGroups = ["networkmanager" "wheel"];
+    extraGroups = ["networkmanager" "wheel" "media"];
     shell = pkgs.zsh;
   };
 
