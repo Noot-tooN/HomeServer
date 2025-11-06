@@ -22,5 +22,9 @@ in {
       )";
       flake-switch-etc = "(cd /etc/nixos && flake-switch-here)";
     };
+
+    initContent = ''
+      bindkey '^H' backward-kill-word
+    '';
   };
 }
