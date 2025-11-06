@@ -13,6 +13,10 @@
     ../../modules/zsh.nix
   ];
 
+  home.packages = with pkgs; [
+    ncdu
+  ];
+
   programs.fzf = {
     enable = true;
     enableZshIntegration = true;
