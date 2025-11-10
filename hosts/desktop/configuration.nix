@@ -43,10 +43,6 @@
       tls internal
       reverse_proxy http://127.0.0.1:8096
     '';
-    virtualHosts."k3s.homeserver.com".extraConfig = ''
-      tls internal
-      reverse_proxy http://127.0.0.1:6443
-    '';
   };
 
   services.tailscale = {
@@ -79,6 +75,11 @@
     enable = true;
     role = "server";
     clusterInit = true;
+
+    extraFlags = [
+      "--write-kubeconfig-mode=644"
+      "--tls-san=homeserver.tail0fa2e4.ts.net"
+    ];
   };
 
   # Set your time zone.
