@@ -13,13 +13,9 @@
     ../../modules/zsh.nix
   ];
 
-  home.packages = with pkgs;
-    [
-      ncdu
-    ]
-    ++ [
-      pkgsUnstable.fluxcd
-    ];
+  home.packages = with pkgs; [
+    ncdu
+  ];
 
   programs.fzf = {
     enable = true;

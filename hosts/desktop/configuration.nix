@@ -71,10 +71,6 @@
     group = "media";
   };
 
-  # in order to get the flux working perform these 2 commands
-  # kubectl apply -f https://github.com/controlplaneio-fluxcd/flux-operator/releases/latest/download/install.yaml
-  # flux --kubeconfig /home/nirdala/.kube/k3s.yml install \
-  # --components=source-controller,kustomize-controller,helm-controller,notification-controller,image-reflector-controller,image-automation-controller
   services.k3s = {
     enable = true;
     role = "server";
