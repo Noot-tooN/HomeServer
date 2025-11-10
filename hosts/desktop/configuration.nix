@@ -43,6 +43,10 @@
       tls internal
       reverse_proxy http://127.0.0.1:8096
     '';
+    virtualHosts."k3s.homeserver.com".extraConfig = ''
+      tls internal
+      reverse_proxy http://127.0.0.1:6443
+    '';
   };
 
   services.tailscale = {
