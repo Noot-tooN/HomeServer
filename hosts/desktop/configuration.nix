@@ -71,6 +71,12 @@
     group = "media";
   };
 
+  services.k3s = {
+    enable = true;
+    role = "server";
+    clusterInit = true;
+  };
+
   # Set your time zone.
   time.timeZone = "Europe/Belgrade";
 
