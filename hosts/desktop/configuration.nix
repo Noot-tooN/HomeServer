@@ -43,9 +43,9 @@
       tls internal
       reverse_proxy http://127.0.0.1:8096
     '';
-    virtualHosts."netdata.homeserver.com".extraConfig = ''
+    virtualHosts."monitoring.homeserver.com".extraConfig = ''
       tls internal
-      reverse_proxy http://127.0.0.1:19999
+      reverse_proxy http://127.0.0.1:2812
     '';
   };
 
@@ -75,13 +75,8 @@
     group = "media";
   };
 
-  services.netdata = {
+  services.monit = {
     enable = true;
-    config = {
-      web = {
-        "web files directory" = "${pkgs.netdata}/share/netdata/web";
-      };
-    };
   };
 
   services.k3s = {
