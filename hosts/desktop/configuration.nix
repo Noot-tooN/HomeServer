@@ -4,6 +4,7 @@
 {
   config,
   pkgs,
+  lib,
   ...
 }: {
   imports = [
@@ -45,7 +46,7 @@
     '';
     virtualHosts."monitoring.homeserver.com".extraConfig = ''
       tls internal
-      reverse_proxy http://127.0.0.1:2812
+      reverse_proxy http://127.0.0.1:19999
     '';
   };
 
@@ -75,8 +76,18 @@
     group = "media";
   };
 
-  services.monit = {
+  nixpkgs.config.allowUnfreePredicate = pkg:
+    builtins.elem (lib.getName pkg) ["netdata"];
+
+  services.netdata = {
     enable = true;
+    package = pkgs.netdata.override {withCloudUi = true;};
+    config.global = {
+      "memory mode" = "ram";
+      "debug log" = "none";
+      "access log" = "none";
+      "error log" = "syslog";
+    };
   };
 
   services.k3s = {
