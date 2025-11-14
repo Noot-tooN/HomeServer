@@ -77,6 +77,11 @@
 
   services.netdata = {
     enable = true;
+    config = {
+      web = {
+        "web files directory" = "${pkgs.netdata}/share/netdata/web";
+      };
+    };
   };
 
   services.k3s = {
