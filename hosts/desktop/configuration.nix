@@ -177,7 +177,7 @@
   networking.firewall = {
     enable = true;
 
-    trustedInterfaces = ["tailscale0"];
+    trustedInterfaces = ["tailscale0" "enp1s0"];
 
     allowedTCPPorts = [443];
   };
