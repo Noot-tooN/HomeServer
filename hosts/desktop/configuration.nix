@@ -59,11 +59,11 @@
     authKeyFile = "/etc/tailscale/authkey";
   };
 
-  # services.jellyfin = {
-  #   enable = true;
-  #   user = "media";
-  #   group = "media";
-  # };
+  services.jellyfin = {
+    enable = true;
+    user = "media";
+    group = "media";
+  };
 
   services.jackett = {
     enable = true;
