@@ -6,7 +6,8 @@
   pkgs,
   lib,
   ...
-}: {
+}:
+{
   imports = [
     # Include the results of the hardware scan.
     ./hardware-configuration.nix
@@ -29,7 +30,7 @@
   services.dnsmasq = {
     enable = true;
     settings = {
-      "address" = ["/homeserver.com/100.82.238.95"];
+      "address" = [ "/homeserver.com/100.82.238.95" ];
     };
   };
 
@@ -54,15 +55,15 @@
     enable = true;
     useRoutingFeatures = "client"; # maybe use both?
     openFirewall = true;
-    extraUpFlags = ["--ssh"];
+    extraUpFlags = [ "--ssh" ];
     authKeyFile = "/etc/tailscale/authkey";
   };
 
-  services.jellyfin = {
-    enable = true;
-    user = "media";
-    group = "media";
-  };
+  # services.jellyfin = {
+  #   enable = true;
+  #   user = "media";
+  #   group = "media";
+  # };
 
   services.jackett = {
     enable = true;
@@ -76,12 +77,11 @@
     group = "media";
   };
 
-  nixpkgs.config.allowUnfreePredicate = pkg:
-    builtins.elem (lib.getName pkg) ["netdata"];
+  nixpkgs.config.allowUnfreePredicate = pkg: builtins.elem (lib.getName pkg) [ "netdata" ];
 
   services.netdata = {
     enable = true;
-    package = pkgs.netdata.override {withCloudUi = true;};
+    package = pkgs.netdata.override { withCloudUi = true; };
     config.global = {
       "memory mode" = "ram";
       "debug log" = "none";
@@ -124,7 +124,11 @@
   users.users.nirdala = {
     isNormalUser = true;
     description = "nirdala";
-    extraGroups = ["networkmanager" "wheel" "media"];
+    extraGroups = [
+      "networkmanager"
+      "wheel"
+      "media"
+    ];
     shell = pkgs.zsh;
   };
 
@@ -135,7 +139,9 @@
     uid = 1025;
   };
 
-  users.groups.media = {gid = 1025;};
+  users.groups.media = {
+    gid = 1025;
+  };
 
   environment.variables = {
     EDITOR = "vim";
@@ -177,9 +183,12 @@
   networking.firewall = {
     enable = true;
 
-    trustedInterfaces = ["tailscale0" "enp1s0"];
+    trustedInterfaces = [
+      "tailscale0"
+      "enp1s0"
+    ];
 
-    allowedTCPPorts = [443];
+    allowedTCPPorts = [ 443 ];
   };
 
   # This value determines the NixOS release from which the default
