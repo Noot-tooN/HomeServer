@@ -6,8 +6,7 @@
   pkgs,
   lib,
   ...
-}:
-{
+}: {
   imports = [
     # Include the results of the hardware scan.
     ./hardware-configuration.nix
@@ -30,7 +29,7 @@
   services.dnsmasq = {
     enable = true;
     settings = {
-      "address" = [ "/homeserver.com/100.82.238.95" ];
+      "address" = ["/homeserver.com/100.82.238.95"];
     };
   };
 
@@ -55,7 +54,7 @@
     enable = true;
     useRoutingFeatures = "client"; # maybe use both?
     openFirewall = true;
-    extraUpFlags = [ "--ssh" ];
+    extraUpFlags = ["--ssh"];
     authKeyFile = "/etc/tailscale/authkey";
   };
 
@@ -77,11 +76,11 @@
     group = "media";
   };
 
-  nixpkgs.config.allowUnfreePredicate = pkg: builtins.elem (lib.getName pkg) [ "netdata" ];
+  nixpkgs.config.allowUnfreePredicate = pkg: builtins.elem (lib.getName pkg) ["netdata"];
 
   services.netdata = {
     enable = true;
-    package = pkgs.netdata.override { withCloudUi = true; };
+    package = pkgs.netdata.override {withCloudUi = true;};
     config.global = {
       "memory mode" = "ram";
       "debug log" = "none";
@@ -173,7 +172,7 @@
   # List services that you want to enable:
 
   # Enable the OpenSSH daemon.
-  # services.openssh.enable = true;
+  services.openssh.enable = true;
 
   # Open ports in the firewall.
   # networking.firewall.allowedTCPPorts = [ ... ];
@@ -188,7 +187,7 @@
       "enp1s0"
     ];
 
-    allowedTCPPorts = [ 443 ];
+    allowedTCPPorts = [443];
   };
 
   # This value determines the NixOS release from which the default
