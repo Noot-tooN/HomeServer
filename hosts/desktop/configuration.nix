@@ -4,6 +4,7 @@
 {
   config,
   pkgs,
+  pkgsUnstable,
   lib,
   ...
 }: {
@@ -48,6 +49,8 @@
 
   services.tailscale = {
     enable = true;
+    # Track security fixes ahead of the stable NixOS package.
+    package = pkgsUnstable.tailscale;
     useRoutingFeatures = "client"; # maybe use both?
     openFirewall = true;
     extraUpFlags = ["--ssh=false"];
