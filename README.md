@@ -62,5 +62,68 @@ five successful boot entries; avoid manually deleting those generations if
 you need them for recovery. A system rollback does not restore application
 databases or other mutable data.
 
-Weekly lock-file automation and external failure reporting are separate from
-this initial comin installation.
+## Weekly package updates
+
+The `Weekly updates` GitHub Actions workflow runs Sundays at 02:23 UTC
+(03:23 in Belgrade in winter, 04:23 in summer), and can also be started from
+the Actions page. It updates only `nixpkgs`, `nixpkgs-unstable`, and
+`home-manager`. Comin and the release branch URLs are not automatically changed.
+
+Each update creates a bot PR and explicitly dispatches `Validate NixOS`.
+This avoids requiring a human to approve CI triggered by `GITHUB_TOKEN`.
+Validation builds `nixosConfigurations.desktop.config.system.build.toplevel`
+at the exact PR revision, with lock-file writes disabled. A separate job posts
+the required `NixOS system build` commit status and merges only successful,
+bot-authored, lock-only updates. It verifies that the PR head and `master`
+still match the validated revisions and checks the lock graph for changes
+outside the allowed inputs. A changed base requires revalidation; it is never
+merged using a stale build.
+
+`master` must require the `NixOS system build` status with strict/up-to-date
+checks. The repository must permit GitHub Actions to create pull requests.
+No personal access token is used by these update/build workflows. Human PRs
+are validated but are not automatically merged. No reboot is scheduled.
+
+To revalidate an existing same-repository PR, dispatch `Validate NixOS` with
+its PR number. Only eligible weekly bot PRs can use `auto_merge=true`.
+
+## Failure reporting
+
+CI failures in either update or validation workflows create a sanitized issue
+in this repository with a workflow run link. No log text is copied into issues.
+
+On the server, `homeserver-reporting.timer` samples comin every two minutes;
+build and deployment hooks also request a sample. It detects fetch, evaluation,
+build, deployment and unavailable-comin failures, including recent generation
+history. Events and bounded diagnostic snapshots are persisted under
+`/var/lib/homeserver-reporting/events/` with root-only access. Repeated identical
+failures reuse the same incident. Delivery failures retain the local queue.
+
+Public server issues contain **only** a fixed machine label, phase, validated
+commit SHA, and incident ID. Error text, commit messages, status snapshots, and
+journal excerpts never enter the issue payload. A future repair worker must
+retrieve diagnostics through authenticated server access. Issues are historical
+records and are not automatically closed: verify the current deployment before
+repairing or resolving an incident. This does not monitor application health,
+or detect a powered-off/disconnected machine from outside the server.
+
+### Token provisioning (deferred until SOPS setup)
+
+CI reports use `GITHUB_TOKEN` and work without a separate credential. Server
+reports queue locally until `/var/lib/homeserver-reporting/github-token` exists.
+Provision this path with SOPS later using a fine-grained GitHub token limited
+to this repository, with **Issues: Read and write** and **Metadata: Read** only.
+The directory must be root-owned mode `0700`, and the token file root-owned mode
+`0600`. Never put the token in Nix source, Git, command arguments, or an issue.
+No token or SOPS keys are included in this change.
+
+```sh
+systemctl status homeserver-reporting.timer
+sudo journalctl -u homeserver-reporting.service -n 30 --no-pager
+sudo systemctl start homeserver-reporting.service
+```
+
+Once the token is provisioned, delivery resumes on the next timer run. To test
+GitHub delivery without breaking comin, run
+`sudo homeserver-report-failures --self-test`; it creates one deduplicated test
+incident, which can be closed afterward.

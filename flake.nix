@@ -42,6 +42,7 @@
       modules = [
         comin.nixosModules.comin
         ./modules/comin.nix
+        ./modules/failure-reporting.nix
         {services.comin.package = comin.packages.${system}.comin;}
         ./hosts/desktop/configuration.nix
         home-manager.nixosModules.home-manager
