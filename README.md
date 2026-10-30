@@ -58,13 +58,34 @@ Tailscale's network policy must allow the connection; OpenSSH then checks the
 key against its authorized keys. The existing Bitwarden-managed HomeServer
 key is installed in the user's local `~/.ssh/authorized_keys` file.
 
-OpenSSH uses socket activation with systemd's `BindToDevice=tailscale0`,
-so its IPv4/IPv6 listener accepts connections only from that interface.
-The socket starts after Tailscale rather than delaying early boot, and is
-requested again when the Tailscale interface reappears. Other services retain
-their existing LAN access; no custom firewall commands are needed.
+The firewall fully trusts `tailscale0`, allowing every port over Tailscale.
+The LAN interface `enp1s0` is not trusted; it allows only the service ports
+listed below. SSH is not in that list. This uses ordinary NixOS interface
+firewall options, without custom commands or socket activation.
 If Tailscale access is unavailable, recovery requires the local console;
 there is no direct LAN SSH fallback.
+
+### LAN service access
+
+| Service | TCP ports | UDP ports |
+| --- | --- | --- |
+| DNS | 53 | 53 |
+| HTTP, HTTPS, HTTP/3 and ingress | 80, 443 | 443 |
+| Kubernetes API | 6443 | — |
+| qBittorrent web UI and peers | 8080, 42715 | 42715, 6771 |
+| Jellyfin and media discovery | 8096 | 7359, 1900 |
+| Jackett | 9117 | — |
+| Netdata | 19999 | — |
+| Existing Traefik NodePorts | 31134, 31731 | — |
+
+The qBittorrent peer port comes from its existing persisted settings; update
+the allowlist if that port changes. Kubernetes manages its own forwarding
+and published NodePorts, so new Kubernetes exposures also require review.
+This single-node cluster does not need LAN access to etcd, kubelet, or VXLAN
+ports. Tailscale's WireGuard transport port remains opened by its NixOS module.
+
+The existing `*.homeserver.com` DNS records still point to the Tailscale IP;
+direct LAN access uses `192.168.0.200`. This change does not modify DNS routing.
 
 ### Recovery
 

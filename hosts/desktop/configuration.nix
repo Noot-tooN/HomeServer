@@ -176,7 +176,6 @@
   # Use OpenSSH keys for authentication; Tailscale only provides the network.
   services.openssh = {
     enable = true;
-    startWhenNeeded = true;
     openFirewall = false;
     settings = {
       AuthenticationMethods = "publickey";
@@ -187,18 +186,6 @@
     };
   };
 
-  # Bind the SSH listener to the VPN interface, independently of LAN firewall trust.
-  systemd.sockets.sshd = {
-    socketConfig.BindToDevice = "tailscale0";
-    # tailscale0 appears after early boot; do not hold up sockets.target.
-    unitConfig.DefaultDependencies = false;
-    wantedBy = lib.mkForce ["multi-user.target" "sys-subsystem-net-devices-tailscale0.device"];
-    requires = ["tailscaled.service"];
-    after = ["tailscaled.service"];
-    conflicts = ["shutdown.target"];
-    before = ["shutdown.target"];
-  };
-
   # Open ports in the firewall.
   # networking.firewall.allowedTCPPorts = [ ... ];
   # networking.firewall.allowedUDPPorts = [ ... ];
@@ -207,13 +194,31 @@
   networking.firewall = {
     enable = true;
 
-    trustedInterfaces = [
-      "tailscale0"
-      "enp1s0"
-    ];
-
-    allowedTCPPorts = [443];
-
+    # All ports are trusted over Tailscale; the LAN only gets these services.
+    trustedInterfaces = ["tailscale0"];
+    interfaces.enp1s0 = {
+      allowedTCPPorts = [
+        53 # DNS
+        80 # HTTP / Kubernetes ingress
+        443 # HTTPS / Kubernetes ingress
+        6443 # Kubernetes API
+        8080 # qBittorrent web UI
+        8096 # Jellyfin
+        9117 # Jackett
+        19999 # Netdata
+        31134 # Existing Traefik HTTPS NodePort
+        31731 # Existing Traefik HTTP NodePort
+        42715 # qBittorrent's configured peer port
+      ];
+      allowedUDPPorts = [
+        53 # DNS
+        443 # HTTP/3
+        1900 # SSDP / media discovery
+        6771 # BitTorrent local peer discovery
+        7359 # Jellyfin discovery
+        42715 # qBittorrent peers / DHT
+      ];
+    };
   };
 
   # This value determines the NixOS release from which the default
