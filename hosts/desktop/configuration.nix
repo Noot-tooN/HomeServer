@@ -44,10 +44,6 @@
       tls internal
       reverse_proxy http://127.0.0.1:8096
     '';
-    virtualHosts."monitoring.homeserver.com".extraConfig = ''
-      tls internal
-      reverse_proxy http://127.0.0.1:19999
-    '';
   };
 
   services.tailscale = {
@@ -76,19 +72,6 @@
     enable = true;
     user = "media";
     group = "media";
-  };
-
-  nixpkgs.config.allowUnfreePredicate = pkg: builtins.elem (lib.getName pkg) ["netdata"];
-
-  services.netdata = {
-    enable = true;
-    package = pkgs.netdata.override {withCloudUi = true;};
-    config.global = {
-      "memory mode" = "ram";
-      "debug log" = "none";
-      "access log" = "none";
-      "error log" = "syslog";
-    };
   };
 
   services.k3s = {
@@ -205,7 +188,6 @@
         8080 # qBittorrent web UI
         8096 # Jellyfin
         9117 # Jackett
-        19999 # Netdata
         31134 # Existing Traefik HTTPS NodePort
         31731 # Existing Traefik HTTP NodePort
         42715 # qBittorrent's configured peer port

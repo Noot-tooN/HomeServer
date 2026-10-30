@@ -75,7 +75,6 @@ there is no direct LAN SSH fallback.
 | qBittorrent web UI and peers | 8080, 42715 | 42715, 6771 |
 | Jellyfin and media discovery | 8096 | 7359, 1900 |
 | Jackett | 9117 | — |
-| Netdata | 19999 | — |
 | Existing Traefik NodePorts | 31134, 31731 | — |
 
 The qBittorrent peer port comes from its existing persisted settings; update
