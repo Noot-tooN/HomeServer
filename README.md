@@ -48,14 +48,20 @@ this existing runtime secret. No reboot is scheduled by this configuration.
 
 ### SSH access
 
-SSH is available only through Tailscale SSH, enabled by the Tailscale
-`--ssh` flag. The separate OpenSSH daemon is disabled, so it does not expose
-port 22 on the LAN or other interfaces. Other services retain their existing
-LAN access.
+OpenSSH requires a public key and is reachable only over the Tailscale
+network. Tailscale's built-in SSH server is explicitly disabled for both
+existing enrollment and future logins. Password, keyboard-interactive, and
+root SSH logins are disabled.
 
-Connect to the server's Tailscale name or address. Login authorization,
-including permitted users and identity checks, is controlled by the tailnet's
-SSH policy, not OpenSSH's `sshd_config` or `authorized_keys`.
+Connect to the server's Tailscale name or address using an authorized SSH key.
+Tailscale's network policy must allow the connection; OpenSSH then checks the
+key against its authorized keys. The existing Bitwarden-managed HomeServer
+key is installed in the user's local `~/.ssh/authorized_keys` file.
+
+The IPv4/IPv6 firewall rejects TCP port 22 arriving on any interface other
+than `tailscale0`, before accepting traffic on the trusted LAN interface.
+Other services retain their existing LAN access. This rule uses the NixOS
+iptables firewall and must be migrated if the firewall backend changes.
 If Tailscale access is unavailable, recovery requires the local console;
 there is no direct LAN SSH fallback.
 

@@ -54,7 +54,9 @@
     enable = true;
     useRoutingFeatures = "client"; # maybe use both?
     openFirewall = true;
-    extraUpFlags = ["--ssh"];
+    extraUpFlags = ["--ssh=false"];
+    # Apply to already-enrolled machines as well as fresh logins.
+    extraSetFlags = ["--ssh=false"];
     authKeyFile = "/etc/tailscale/authkey";
   };
 
@@ -171,12 +173,25 @@
 
   # List services that you want to enable:
 
-  # Tailscale's SSH server handles tailnet connections independently of sshd.
-  # Disable the separate daemon so the trusted LAN cannot reach SSH directly.
+  # Use OpenSSH keys for authentication; Tailscale only provides the network.
   services.openssh = {
-    enable = false;
+    enable = true;
     openFirewall = false;
+    settings = {
+      AuthenticationMethods = "publickey";
+      PubkeyAuthentication = true;
+      PasswordAuthentication = false;
+      KbdInteractiveAuthentication = false;
+      PermitRootLogin = "no";
+    };
   };
+
+  assertions = [
+    {
+      assertion = !config.networking.nftables.enable;
+      message = "Migrate the tailscale-only SSH ingress rule before enabling the nftables firewall.";
+    }
+  ];
 
   # Open ports in the firewall.
   # networking.firewall.allowedTCPPorts = [ ... ];
@@ -192,6 +207,12 @@
     ];
 
     allowedTCPPorts = [443];
+
+    # The LAN remains trusted for other services. Insert before that ACCEPT
+    # rule so SSH is reachable only through tailscale0, on IPv4 and IPv6.
+    extraCommands = lib.concatMapStringsSep "\n" (port: ''
+      ip46tables -I nixos-fw 1 -p tcp --dport ${toString port} ! -i tailscale0 -j nixos-fw-refuse
+    '') config.services.openssh.ports;
   };
 
   # This value determines the NixOS release from which the default
