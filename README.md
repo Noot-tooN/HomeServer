@@ -46,6 +46,19 @@ update its `my-config` input before using it to rebuild a newer Git revision.
 Keep `/etc/tailscale/authkey` provisioned on the server. Comin does not manage
 this existing runtime secret. No reboot is scheduled by this configuration.
 
+### SSH access
+
+SSH is available only through Tailscale SSH, enabled by the Tailscale
+`--ssh` flag. The separate OpenSSH daemon is disabled, so it does not expose
+port 22 on the LAN or other interfaces. Other services retain their existing
+LAN access.
+
+Connect to the server's Tailscale name or address. Login authorization,
+including permitted users and identity checks, is controlled by the tailnet's
+SSH policy, not OpenSSH's `sshd_config` or `authorized_keys`.
+If Tailscale access is unavailable, recovery requires the local console;
+there is no direct LAN SSH fallback.
+
 ### Recovery
 
 Stop comin before a manual rollback so automatic deployment does not compete

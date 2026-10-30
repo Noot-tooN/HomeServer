@@ -171,14 +171,11 @@
 
   # List services that you want to enable:
 
-  # Enable the OpenSSH daemon.
+  # Tailscale's SSH server handles tailnet connections independently of sshd.
+  # Disable the separate daemon so the trusted LAN cannot reach SSH directly.
   services.openssh = {
-    enable = true;
-    settings = {
-      PasswordAuthentication = false;
-      KbdInteractiveAuthentication = false;
-      PermitRootLogin = "no";
-    };
+    enable = false;
+    openFirewall = false;
   };
 
   # Open ports in the firewall.
