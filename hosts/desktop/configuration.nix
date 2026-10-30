@@ -44,17 +44,15 @@
       tls internal
       reverse_proxy http://127.0.0.1:8096
     '';
-    virtualHosts."monitoring.homeserver.com".extraConfig = ''
-      tls internal
-      reverse_proxy http://127.0.0.1:19999
-    '';
   };
 
   services.tailscale = {
     enable = true;
     useRoutingFeatures = "client"; # maybe use both?
     openFirewall = true;
-    extraUpFlags = ["--ssh"];
+    extraUpFlags = ["--ssh=false"];
+    # Apply to already-enrolled machines as well as fresh logins.
+    extraSetFlags = ["--ssh=false"];
     authKeyFile = "/etc/tailscale/authkey";
   };
 
@@ -74,19 +72,6 @@
     enable = true;
     user = "media";
     group = "media";
-  };
-
-  nixpkgs.config.allowUnfreePredicate = pkg: builtins.elem (lib.getName pkg) ["netdata"];
-
-  services.netdata = {
-    enable = true;
-    package = pkgs.netdata.override {withCloudUi = true;};
-    config.global = {
-      "memory mode" = "ram";
-      "debug log" = "none";
-      "access log" = "none";
-      "error log" = "syslog";
-    };
   };
 
   services.k3s = {
@@ -171,10 +156,13 @@
 
   # List services that you want to enable:
 
-  # Enable the OpenSSH daemon.
+  # Use OpenSSH keys for authentication; Tailscale only provides the network.
   services.openssh = {
     enable = true;
+    openFirewall = false;
     settings = {
+      AuthenticationMethods = "publickey";
+      PubkeyAuthentication = true;
       PasswordAuthentication = false;
       KbdInteractiveAuthentication = false;
       PermitRootLogin = "no";
@@ -189,12 +177,30 @@
   networking.firewall = {
     enable = true;
 
-    trustedInterfaces = [
-      "tailscale0"
-      "enp1s0"
-    ];
-
-    allowedTCPPorts = [443];
+    # All ports are trusted over Tailscale; the LAN only gets these services.
+    trustedInterfaces = ["tailscale0"];
+    interfaces.enp1s0 = {
+      allowedTCPPorts = [
+        53 # DNS
+        80 # HTTP / Kubernetes ingress
+        443 # HTTPS / Kubernetes ingress
+        6443 # Kubernetes API
+        8080 # qBittorrent web UI
+        8096 # Jellyfin
+        9117 # Jackett
+        31134 # Existing Traefik HTTPS NodePort
+        31731 # Existing Traefik HTTP NodePort
+        42715 # qBittorrent's configured peer port
+      ];
+      allowedUDPPorts = [
+        53 # DNS
+        443 # HTTP/3
+        1900 # SSDP / media discovery
+        6771 # BitTorrent local peer discovery
+        7359 # Jellyfin discovery
+        42715 # qBittorrent peers / DHT
+      ];
+    };
   };
 
   # This value determines the NixOS release from which the default
