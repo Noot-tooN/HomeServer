@@ -176,6 +176,7 @@
   # Use OpenSSH keys for authentication; Tailscale only provides the network.
   services.openssh = {
     enable = true;
+    startWhenNeeded = true;
     openFirewall = false;
     settings = {
       AuthenticationMethods = "publickey";
@@ -186,12 +187,17 @@
     };
   };
 
-  assertions = [
-    {
-      assertion = !config.networking.nftables.enable;
-      message = "Migrate the tailscale-only SSH ingress rule before enabling the nftables firewall.";
-    }
-  ];
+  # Bind the SSH listener to the VPN interface, independently of LAN firewall trust.
+  systemd.sockets.sshd = {
+    socketConfig.BindToDevice = "tailscale0";
+    # tailscale0 appears after early boot; do not hold up sockets.target.
+    unitConfig.DefaultDependencies = false;
+    wantedBy = lib.mkForce ["multi-user.target" "sys-subsystem-net-devices-tailscale0.device"];
+    requires = ["tailscaled.service"];
+    after = ["tailscaled.service"];
+    conflicts = ["shutdown.target"];
+    before = ["shutdown.target"];
+  };
 
   # Open ports in the firewall.
   # networking.firewall.allowedTCPPorts = [ ... ];
@@ -208,11 +214,6 @@
 
     allowedTCPPorts = [443];
 
-    # The LAN remains trusted for other services. Insert before that ACCEPT
-    # rule so SSH is reachable only through tailscale0, on IPv4 and IPv6.
-    extraCommands = lib.concatMapStringsSep "\n" (port: ''
-      ip46tables -I nixos-fw 1 -p tcp --dport ${toString port} ! -i tailscale0 -j nixos-fw-refuse
-    '') config.services.openssh.ports;
   };
 
   # This value determines the NixOS release from which the default

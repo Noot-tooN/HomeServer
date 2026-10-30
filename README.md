@@ -58,10 +58,11 @@ Tailscale's network policy must allow the connection; OpenSSH then checks the
 key against its authorized keys. The existing Bitwarden-managed HomeServer
 key is installed in the user's local `~/.ssh/authorized_keys` file.
 
-The IPv4/IPv6 firewall rejects TCP port 22 arriving on any interface other
-than `tailscale0`, before accepting traffic on the trusted LAN interface.
-Other services retain their existing LAN access. This rule uses the NixOS
-iptables firewall and must be migrated if the firewall backend changes.
+OpenSSH uses socket activation with systemd's `BindToDevice=tailscale0`,
+so its IPv4/IPv6 listener accepts connections only from that interface.
+The socket starts after Tailscale rather than delaying early boot, and is
+requested again when the Tailscale interface reappears. Other services retain
+their existing LAN access; no custom firewall commands are needed.
 If Tailscale access is unavailable, recovery requires the local console;
 there is no direct LAN SSH fallback.
 
