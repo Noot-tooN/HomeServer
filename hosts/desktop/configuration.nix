@@ -105,6 +105,18 @@
     "flakes"
   ];
 
+  nix.gc = {
+    automatic = true;
+    dates = "Mon *-*-* 04:00:00";
+    persistent = true;
+    # Collect unreferenced store paths without deleting rollback generations.
+    options = "";
+  };
+
+  services.journald.extraConfig = ''
+    SystemMaxUse=1G
+  '';
+
   programs.zsh.enable = true;
 
   # Define a user account. Don't forget to set a password with ‘passwd’.

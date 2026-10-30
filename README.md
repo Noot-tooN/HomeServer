@@ -127,6 +127,24 @@ are validated but are not automatically merged. No reboot is scheduled.
 To revalidate an existing same-repository PR, dispatch `Validate NixOS` with
 its PR number. Only eligible weekly bot PRs can use `auto_merge=true`.
 
+## Disk cleanup
+
+Nix garbage collection runs every Monday at 04:00 in the server's
+Europe/Belgrade timezone and catches up after downtime. It removes only
+unreferenced store paths; it does not delete retained system or Home Manager
+generations, comin rollback generations, or downloads.
+
+Persistent systemd journals are limited to 1 GiB. Journald removes older
+archived journal files as logs rotate; this limit does not cover separate
+application log files such as Caddy's logs.
+
+To run the same cleanup immediately, including rotating active journals:
+
+```sh
+sudo systemctl start nix-gc.service
+sudo journalctl --rotate --vacuum-size=1G
+```
+
 ## Failure reporting
 
 CI failures in either update or validation workflows create a sanitized issue
