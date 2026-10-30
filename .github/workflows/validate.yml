@@ -114,7 +114,10 @@ jobs:
             }
             function graph(lock, name = lock.root, path = []) {
               const node = structuredClone(lock.nodes[name]);
-              if (path.length === 1 && allowed.has(path[0])) delete node.locked;
+              if (path.length === 1 && allowed.has(path[0])) {
+                // Permit new revisions/hashes, but preserve the locked source identity too.
+                node.locked = Object.fromEntries(Object.entries(node.locked).filter(([key]) => !['rev', 'narHash', 'lastModified'].includes(key)));
+              }
               if (node.inputs) node.inputs = Object.fromEntries(Object.entries(node.inputs).map(([key, ref]) => [key, Array.isArray(ref) ? ref : graph(lock, ref, [...path, key])]));
               return node;
             }
