@@ -8,6 +8,11 @@
     # Unstable NixOS packages
     nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixos-unstable";
 
+    comin = {
+      url = "github:nlewo/comin";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     # Home Manager for declarative user configuration
     home-manager = {
       url = "github:nix-community/home-manager/release-26.05";
@@ -19,6 +24,7 @@
     nixpkgs,
     nixpkgs-unstable,
     home-manager,
+    comin,
     ...
   }: let
     system = "x86_64-linux";
@@ -34,6 +40,9 @@
     nixosConfigurations.desktop = nixpkgs.lib.nixosSystem {
       inherit system;
       modules = [
+        comin.nixosModules.comin
+        ./modules/comin.nix
+        {services.comin.package = comin.packages.${system}.comin;}
         ./hosts/desktop/configuration.nix
         home-manager.nixosModules.home-manager
 
