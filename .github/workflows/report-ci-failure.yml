@@ -1,0 +1,30 @@
+name: Report CI failure
+on:
+  workflow_run:
+    workflows: [Weekly updates, Validate NixOS]
+    types: [completed]
+permissions:
+  issues: write
+concurrency:
+  group: report-ci-${{ github.event.workflow_run.id }}
+  cancel-in-progress: false
+jobs:
+  report:
+    if: github.event.workflow_run.conclusion == 'failure' || github.event.workflow_run.conclusion == 'timed_out'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
+        with:
+          script: |
+            const run = context.payload.workflow_run;
+            const marker = `<!-- homeserver-ci:${run.id}:${run.run_attempt} -->`;
+            for await (const response of github.paginate.iterator(github.rest.issues.listForRepo, {...context.repo, state: 'all', per_page: 100})) {
+              if (response.data.some(issue => (issue.body || '').startsWith(marker))) return;
+            }
+            const phase = run.name === 'Weekly updates' ? 'dependency-update' : 'validation';
+            const metadata = {schema_version: 1, machine: 'homeserver', phase, run_id: run.id, run_attempt: run.run_attempt};
+            // Workflow-dispatch SHA identifies the controller, not necessarily the tested PR.
+            // The run's validation outputs record the exact PR and tested revision.
+            await github.rest.issues.create({...context.repo,
+              title: `[HomeServer] ${phase} failed (run ${run.id})`,
+              body: `${marker}\n\nAutomated CI failure report. No error text or logs are copied into this issue.\n\n\`\`\`json\n${JSON.stringify(metadata, null, 2)}\n\`\`\`\n\n[Workflow run](${context.serverUrl}/${process.env.GITHUB_REPOSITORY}/actions/runs/${run.id}) contains the tested revision and diagnostics. Verify current state before attempting a repair.`});
