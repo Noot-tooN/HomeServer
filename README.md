@@ -132,12 +132,13 @@ five successful boot entries; avoid manually deleting those generations if
 you need them for recovery. A system rollback does not restore application
 databases or other mutable data.
 
-## Weekly package updates
+## Weekly dependency updates
 
 The `Weekly updates` GitHub Actions workflow runs Sundays at 02:23 UTC
 (03:23 in Belgrade in winter, 04:23 in summer), and can also be started from
-the Actions page. It updates only `nixpkgs`, `nixpkgs-unstable`, and
-`home-manager`. Comin and the release branch URLs are not automatically changed.
+the Actions page. It runs `nix flake update` for all inputs, including nixpkgs,
+Home Manager, comin, sops-nix, the age fork, and their locked dependencies.
+Configured repository URLs and release branches remain unchanged.
 
 Each update creates a bot PR and explicitly dispatches `Validate NixOS`.
 This avoids requiring a human to approve CI triggered by `GITHUB_TOKEN`.
@@ -145,9 +146,11 @@ Validation builds `nixosConfigurations.desktop.config.system.build.toplevel`
 at the exact PR revision, with lock-file writes disabled. A separate job posts
 the required `NixOS system build` commit status and merges only successful,
 bot-authored, lock-only updates. It verifies that the PR head and `master`
-still match the validated revisions and checks the lock graph for changes
-outside the allowed inputs. A changed base requires revalidation; it is never
-merged using a stale build.
+still match the validated revisions. The lock graph check permits revision,
+content-hash, and timestamp updates for every dependency, while preserving
+source identities, branch selections, and dependency wiring. Changes to those
+require manual review, including upstream additions or removals of dependencies.
+A changed base requires revalidation; it is never merged using a stale build.
 
 `master` must require the `NixOS system build` status with strict/up-to-date
 checks. The repository must permit GitHub Actions to create pull requests.
