@@ -122,7 +122,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--self-test", action="store_true")
     parser.add_argument("--state-dir", default="/var/lib/homeserver-reporting")
-    parser.add_argument("--token-file", default="/var/lib/homeserver-reporting/github-token")
+    parser.add_argument("--token-file", default="/run/secrets/github-reporting-token")
     args = parser.parse_args()
     os.umask(0o077)
     directory = Path(args.state_dir) / "events"
