@@ -10,6 +10,8 @@
 in {
   home.packages = with pkgs; [bat eza fd];
 
+  xdg.configFile."fish/conf.d/30-history.fish".source = ./fish-history.fish;
+
   programs.fish = {
     enable = true;
     shellAbbrs = {

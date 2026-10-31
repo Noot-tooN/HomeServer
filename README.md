@@ -73,6 +73,11 @@ and the Mac's `ls`, `ll`, `lt`, `cat`, and `find` abbreviations. Ctrl-R searches
 history, Ctrl-T searches files/directories with bat/eza previews, and Alt-C
 changes directory. Abbreviations expand only while typing interactively.
 
+`!!` inserts the previous command, `!$` its last argument, and `!*` all of its
+arguments. Press Space after the abbreviation to inspect it before running it.
+Quoted arguments are preserved. The argument shortcuts are intended for simple
+commands, not full Bash history expansion of pipelines or compound commands.
+
 The two-line prompt shows the directory, SSH identity, command duration, and
 clock. Icons use the SSH client's font. macOS-specific Homebrew and Hermit
 initialization is not installed on the server. Previous zsh history is kept
