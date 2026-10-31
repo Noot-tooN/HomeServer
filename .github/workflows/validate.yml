@@ -63,6 +63,8 @@ jobs:
       - uses: cachix/install-nix-action@75c75c31ebece974e48ebc36b4ad125bd97bd97b # v31
       - name: Test failure reporting logic
         run: python3 -m unittest discover -s tests -v
+      - name: Test auto-merge validation
+        run: node --test tests/test_auto_merge.cjs
       - name: Build the entire system
         run: nix build --no-write-lock-file --no-link -L .#nixosConfigurations.desktop.config.system.build.toplevel
   publish:
@@ -99,30 +101,30 @@ jobs:
               core.notice('Auto-merge withheld: PR scope or revision changed; revalidation required.');
               return;
             }
-            // Lock-only is necessary but not sufficient: limit changes to allowed inputs.
+            // Allow revision updates throughout the graph, preserving sources and wiring.
             async function lockAt(ref) {
               const {data} = await github.rest.repos.getContent({...context.repo, path: 'flake.lock', ref});
               return JSON.parse(Buffer.from(data.content, 'base64').toString('utf8'));
             }
             const before = await lockAt(master.commit.sha);
             const after = await lockAt(sha);
-            const allowed = new Set(['nixpkgs', 'nixpkgs-unstable', 'home-manager']);
             function canonical(value) {
               if (Array.isArray(value)) return value.map(canonical);
               if (value && typeof value === 'object') return Object.fromEntries(Object.keys(value).sort().map(k => [k, canonical(value[k])]));
               return value;
             }
-            function graph(lock, name = lock.root, path = []) {
+            function graph(lock, name = lock.root) {
               const node = structuredClone(lock.nodes[name]);
-              if (path.length === 1 && allowed.has(path[0])) {
-                // Permit new revisions/hashes, but preserve the locked source identity too.
-                node.locked = Object.fromEntries(Object.entries(node.locked).filter(([key]) => !['rev', 'narHash', 'lastModified'].includes(key)));
+              if (node.locked) {
+                // Preserve source identity and any explicitly requested commit pin.
+                const mutable = node.original?.rev ? ['narHash', 'lastModified'] : ['rev', 'narHash', 'lastModified'];
+                node.locked = Object.fromEntries(Object.entries(node.locked).filter(([key]) => !mutable.includes(key)));
               }
-              if (node.inputs) node.inputs = Object.fromEntries(Object.entries(node.inputs).map(([key, ref]) => [key, Array.isArray(ref) ? ref : graph(lock, ref, [...path, key])]));
+              if (node.inputs) node.inputs = Object.fromEntries(Object.entries(node.inputs).map(([key, ref]) => [key, Array.isArray(ref) ? ref : graph(lock, ref)]));
               return node;
             }
             if (before.version !== after.version || JSON.stringify(canonical(graph(before))) !== JSON.stringify(canonical(graph(after)))) {
-              throw new Error('Lock change includes sources or dependencies outside the permitted package inputs');
+              throw new Error('Lock change alters source identities, branches, or dependency wiring; manual review required');
             }
             const {data: merged} = await github.rest.pulls.merge({...context.repo, pull_number: number, sha, merge_method: 'squash'});
             if (!merged.merged) throw new Error(merged.message);
