@@ -117,7 +117,7 @@
     SystemMaxUse=1G
   '';
 
-  programs.zsh.enable = true;
+  programs.fish.enable = true;
 
   # Define a user account. Don't forget to set a password with ‘passwd’.
   users.users.nirdala = {
@@ -128,7 +128,7 @@
       "wheel"
       "media"
     ];
-    shell = pkgs.zsh;
+    shell = pkgs.fish;
   };
 
   users.users.media = {

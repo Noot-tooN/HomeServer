@@ -65,6 +65,31 @@ firewall options, without custom commands or socket activation.
 If Tailscale access is unavailable, recovery requires the local console;
 there is no direct LAN SSH fallback.
 
+### Interactive shell
+
+The `nirdala` account uses fish directly as its login shell. Home Manager
+provides Starship and fzf integrations, native fish suggestions/highlighting,
+and the Mac's `ls`, `ll`, `lt`, `cat`, and `find` abbreviations. Ctrl-R searches
+history, Ctrl-T searches files/directories with bat/eza previews, and Alt-C
+changes directory. Abbreviations expand only while typing interactively.
+
+The two-line prompt shows the directory, SSH identity, command duration, and
+clock. Icons use the SSH client's font. macOS-specific Homebrew and Hermit
+initialization is not installed on the server. Previous zsh history is kept
+but is not automatically imported into fish.
+
+Remote command strings now use fish syntax. Scripts retain their explicit
+interpreters; to send Bash syntax, use an explicit Bash session, for example:
+
+```sh
+ssh homeserver 'bash -s' <<'BASH'
+for item in a b; do printf '%s\n' "$item"; done
+BASH
+```
+
+For troubleshooting without interactive integrations, use
+`ssh -t homeserver 'fish --no-config'` or `ssh -t homeserver 'bash --noprofile --norc'`.
+
 ### LAN service access
 
 | Service | TCP ports | UDP ports |
