@@ -10,22 +10,12 @@
   programs.home-manager.enable = true;
 
   imports = [
-    ../../modules/zsh.nix
+    ../../modules/fish.nix
   ];
 
   home.packages = with pkgs; [
     ncdu
   ];
-
-  programs.fzf = {
-    enable = true;
-    enableZshIntegration = true;
-  };
-
-  programs.starship = {
-    enable = true;
-    enableZshIntegration = true;
-  };
 
   programs.kitty = {
     enable = true;
