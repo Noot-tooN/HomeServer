@@ -1,4 +1,4 @@
-{config, pkgs, ...}: let
+{config, lib, pkgs, ...}: let
   reporter = pkgs.writeShellApplication {
     name = "homeserver-report-failures";
     runtimeInputs = [config.services.comin.package pkgs.python3 pkgs.systemd];
@@ -16,11 +16,13 @@ in {
   '';
   systemd.services.homeserver-reporting = {
     description = "Report sanitized comin failures to GitHub Issues";
-    after = ["network-online.target"];
+    after = ["network-online.target"] ++ lib.optional config.sops.useSystemdActivation "sops-install-secrets.service";
+    requires = lib.optional config.sops.useSystemdActivation "sops-install-secrets.service";
     wants = ["network-online.target"];
     serviceConfig = {
       Type = "oneshot";
-      ExecStart = "${reporter}/bin/homeserver-report-failures";
+      LoadCredential = ["github-token:${config.sops.secrets.github-reporting-token.path}"];
+      ExecStart = "${reporter}/bin/homeserver-report-failures --token-file %d/github-token";
       StateDirectory = "homeserver-reporting";
       StateDirectoryMode = "0700";
       UMask = "0077";

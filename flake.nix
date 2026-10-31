@@ -21,6 +21,11 @@
     # Follow the fork's default branch; flake.lock pins each deployed revision.
     age-mnemonic.url = "github:Noot-tooN/age";
 
+    quantum-secrets = {
+      url = "github:Noot-tooN/QuantumSecrets";
+      flake = false;
+    };
+
     # Home Manager for declarative user configuration
     home-manager = {
       url = "github:nix-community/home-manager/release-26.05";
@@ -35,6 +40,7 @@
     comin,
     sops-nix,
     age-mnemonic,
+    quantum-secrets,
     ...
   }: let
     system = "x86_64-linux";
@@ -70,7 +76,7 @@
         }
       ];
       specialArgs = {
-        inherit pkgsUnstable;
+        inherit pkgsUnstable quantum-secrets;
       };
     };
   };

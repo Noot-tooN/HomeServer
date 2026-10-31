@@ -198,15 +198,28 @@ records and are not automatically closed: verify the current deployment before
 repairing or resolving an incident. This does not monitor application health,
 or detect a powered-off/disconnected machine from outside the server.
 
-### Token provisioning (deferred until SOPS setup)
+### Reporting token through SOPS
 
 CI reports use `GITHUB_TOKEN` and work without a separate credential. Server
-reports queue locally until `/var/lib/homeserver-reporting/github-token` exists.
-Provision this path with SOPS later using a fine-grained GitHub token limited
-to this repository, with **Issues: Read and write** and **Metadata: Read** only.
-The directory must be root-owned mode `0700`, and the token file root-owned mode
-`0600`. Never put the token in Nix source, Git, command arguments, or an issue.
-No token or SOPS keys are included in this change.
+reports use a fine-grained GitHub token limited to this repository, with
+**Issues: Read and write** and **Metadata: Read** only.
+
+The `quantum-secrets` input pins the public
+[QuantumSecrets repository](https://github.com/Noot-tooN/QuantumSecrets).
+Its `hosts/homeserver.yaml` contains the SOPS-encrypted `github_reporting_token`.
+HomeServer decrypts it using `/var/lib/sops-nix/key.txt`; automatic identity
+generation and SSH-key imports remain disabled.
+
+SOPS installs `/run/secrets/github-reporting-token` as root:root mode `0400`.
+The reporting service receives a private copy through systemd `LoadCredential`,
+and is restarted when the secret changes. Neither the plaintext token nor the
+private identity is stored in Git or the Nix store. Do not put the token in
+command arguments or an issue.
+
+To rotate the token, encrypt its replacement on HomeServer, publish the updated
+ciphertext to QuantumSecrets, then update the `quantum-secrets` flake input and
+deploy. The weekly all-input update can also pick up the new ciphertext.
+Create the replacement before revoking the old token when possible.
 
 ```sh
 systemctl status homeserver-reporting.timer

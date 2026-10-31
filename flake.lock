@@ -141,6 +141,22 @@
         "type": "github"
       }
     },
+    "quantum-secrets": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1793486133,
+        "narHash": "sha256-R4hZW0tWU/LSAm8B+G959Qn1wbAHpne9d1w4kbhSeUQ=",
+        "owner": "Noot-tooN",
+        "repo": "QuantumSecrets",
+        "rev": "f1d10786b8233ce934697b1aa53c32c2e65231cb",
+        "type": "github"
+      },
+      "original": {
+        "owner": "Noot-tooN",
+        "repo": "QuantumSecrets",
+        "type": "github"
+      }
+    },
     "root": {
       "inputs": {
         "age-mnemonic": "age-mnemonic",
@@ -148,6 +164,7 @@
         "home-manager": "home-manager",
         "nixpkgs": "nixpkgs_3",
         "nixpkgs-unstable": "nixpkgs-unstable",
+        "quantum-secrets": "quantum-secrets",
         "sops-nix": "sops-nix"
       }
     },
