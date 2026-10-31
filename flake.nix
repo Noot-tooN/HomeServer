@@ -13,6 +13,14 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    sops-nix = {
+      url = "github:Mic92/sops-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    # Follow the fork's default branch; flake.lock pins each deployed revision.
+    age-mnemonic.url = "github:Noot-tooN/age";
+
     # Home Manager for declarative user configuration
     home-manager = {
       url = "github:nix-community/home-manager/release-26.05";
@@ -25,6 +33,8 @@
     nixpkgs-unstable,
     home-manager,
     comin,
+    sops-nix,
+    age-mnemonic,
     ...
   }: let
     system = "x86_64-linux";
@@ -43,6 +53,9 @@
         comin.nixosModules.comin
         ./modules/comin.nix
         ./modules/failure-reporting.nix
+        sops-nix.nixosModules.sops
+        ./modules/secrets.nix
+        {environment.systemPackages = [age-mnemonic.packages.${system}.age-keygen-mnemonic];}
         {services.comin.package = comin.packages.${system}.comin;}
         ./hosts/desktop/configuration.nix
         home-manager.nixosModules.home-manager
