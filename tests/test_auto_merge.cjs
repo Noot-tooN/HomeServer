@@ -60,10 +60,13 @@ function rootNode(s, name) {
   return s.after.nodes[s.after.nodes[s.after.root].inputs[name]];
 }
 
-test('all direct and transitive input revisions can update together', async () => {
+test('unpinned direct and transitive input revisions can update together', async () => {
   const s = scenario();
   for (const node of Object.values(s.after.nodes)) {
-    if (node.locked) Object.assign(node.locked, {rev: 'new-revision', narHash: 'new-hash', lastModified: 123});
+    if (!node.locked) continue;
+    Object.assign(node.locked, {narHash: 'new-hash', lastModified: 123});
+    // A real flake update preserves revisions explicitly pinned in flake.nix.
+    if (!node.original?.rev) node.locked.rev = 'new-revision';
   }
   await run(s);
   assert.equal(s.merges.length, 1);
