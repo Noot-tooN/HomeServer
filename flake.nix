@@ -26,6 +26,9 @@
       flake = false;
     };
 
+    # Deploy a reviewed application revision; update deliberately with its lock entry.
+    smartthermweb.url = "github:Noot-tooN/SmartThermWeb/3c93384bbd18172bacf2d5b01850d5a6ece2fd61";
+
     # Home Manager for declarative user configuration
     home-manager = {
       url = "github:nix-community/home-manager/release-26.05";
@@ -41,6 +44,7 @@
     sops-nix,
     age-mnemonic,
     quantum-secrets,
+    smartthermweb,
     ...
   }: let
     system = "x86_64-linux";
@@ -63,6 +67,8 @@
         ./modules/secrets.nix
         {environment.systemPackages = [age-mnemonic.packages.${system}.age-keygen-mnemonic];}
         {services.comin.package = comin.packages.${system}.comin;}
+        smartthermweb.nixosModules.default
+        ./modules/smartthermweb.nix
         ./hosts/desktop/configuration.nix
         home-manager.nixosModules.home-manager
 
@@ -76,7 +82,7 @@
         }
       ];
       specialArgs = {
-        inherit pkgsUnstable quantum-secrets;
+        inherit pkgsUnstable quantum-secrets smartthermweb;
       };
     };
   };

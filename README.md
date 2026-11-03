@@ -231,3 +231,33 @@ Once the token is provisioned, delivery resumes on the next timer run. To test
 GitHub delivery without breaking comin, run
 `sudo homeserver-report-failures --self-test`; it creates one deduplicated test
 incident, which can be closed afterward.
+
+
+## Heating dashboard
+
+SmartThermWeb is served at **https://heating.homeserver.com**, using the existing
+Caddy internal CA and `*.homeserver.com` DNS routing. Open it through the same
+trusted network/Tailscale and certificate setup as the other home services.
+Sign in with your OCSTAT account; credentials are not stored in Nix or SOPS.
+Sessions live in memory, so a service restart requires signing in again.
+
+`modules/smartthermweb.nix` configures the app on `127.0.0.1:3000` and adds its
+HTTPS Caddy host. Only the configured browser origin can submit edits. No new
+firewall port is opened. Schedule read-back still uses the previously authorized
+manufacturer TCP service on port 8800; browser traffic uses HTTPS.
+
+The application revision is explicitly pinned in `flake.nix`. To upgrade it,
+publish the reviewed SmartThermWeb commit, replace that revision, run
+`nix flake lock`, and build `.#nixosConfigurations.desktop.config.system.build.toplevel`.
+Commit and push the HomeServer changes to `master`; comin performs the switch.
+Do not run a separate temporary application server for normal use.
+
+```sh
+systemctl status smartthermweb
+journalctl -u smartthermweb -n 50 --no-pager
+curl --fail http://127.0.0.1:3000/api/health
+```
+
+A running dashboard does not confirm physical thermostat synchronization;
+“Accepted by server” retains its existing meaning. Deploying the service never
+logs in or changes a thermostat automatically.
