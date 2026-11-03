@@ -233,31 +233,64 @@ GitHub delivery without breaking comin, run
 incident, which can be closed afterward.
 
 
-## Heating dashboard
+## Home dashboard and HTTPS
 
-SmartThermWeb is served at **https://heating.homeserver.com**, using the existing
-Caddy internal CA and `*.homeserver.com` DNS routing. Open it through the same
-trusted network/Tailscale and certificate setup as the other home services.
+Open **https://homeserver.tail0fa2e4.ts.net/** while connected to Tailscale.
+Homer provides links to the existing services:
+
+| Service | Trusted URL | Backend |
+| --- | --- | --- |
+| Dashboard | `https://homeserver.tail0fa2e4.ts.net/` | Static Homer files in the Nix store |
+| Heating | `https://homeserver.tail0fa2e4.ts.net:8443/` | `127.0.0.1:3000` |
+| Torrents | `https://homeserver.tail0fa2e4.ts.net:8445/` | `127.0.0.1:8080` |
+| Media | `https://homeserver.tail0fa2e4.ts.net:8446/` | `127.0.0.1:8096` |
+| Jackett | `https://homeserver.tail0fa2e4.ts.net:8447/` | `127.0.0.1:9117` |
+
+`modules/home-dashboard.nix` owns the dashboard, service links, HTTPS proxies,
+and the heating app's allowed browser origin. Homer is served by the existing
+Caddy process; it has no separate application server, database, or API secrets.
+The ports let each service retain its existing root URL and authentication.
+For qBittorrent, Caddy normalizes the upstream Host and only the matching public
+Origin/Referer to its backend address. Foreign Origin/Referer headers are
+rejected before proxying. qBittorrent's host and CSRF checks stay enabled, and
+its runtime settings are not rewritten.
+
+Enable **HTTPS Certificates** in the Tailscale admin console's DNS settings.
+`services.tailscale.permitCertUid = "caddy"` lets Caddy obtain and automatically
+renew the publicly trusted certificate from tailscaled. No CA installation on
+client devices or manual certificate renewal is needed. Certificate issuance
+publishes the machine's full DNS name in Certificate Transparency logs; it does
+not make the services publicly reachable. Tailscale access policy still applies.
+
+Traefik owns external ports 80/443 through k3s ServiceLB. The Nix-managed routes
+pass dashboard TLS through to Caddy on 8444 and HTTP to its redirect listener
+on 8081. These backend ports are allowed on `cni0`, with endpoint `10.42.0.1` for
+this single-node cluster. Service HTTPS ports use the existing trusted
+`tailscale0` interface; no additional LAN firewall ports are opened. HTTPS is
+terminated by Caddy, and application traffic then stays on the server.
+
+HTTP visits redirect to HTTPS. The former `heating.homeserver.com`,
+`torrent.homeserver.com`, and `media.homeserver.com` addresses redirect to the
+new URLs. Old HTTPS bookmarks still need the old internal CA before a redirect
+can run, so replace them with the dashboard links. The local DNS aliases cannot
+get public certificates without ownership of that domain.
+
+### Heating application
+
 Sign in with your OCSTAT account; credentials are not stored in Nix or SOPS.
-Sessions live in memory, so a service restart requires signing in again.
-
-`modules/smartthermweb.nix` configures the app on `127.0.0.1:3000` and adds its
-HTTPS Caddy host. Traefik owns external port 443, so a declarative k3s TCP route
-passes only `heating.homeserver.com` through to Caddy on port 8444. Caddy then
-proxies to the loopback app. Port 8444 is allowed on the cluster's `cni0`
-interface, not the LAN interface; the endpoint uses this single-node cluster's
-existing host address `10.42.0.1`. No other ingress routes are changed.
-Only the configured browser origin can submit edits. Schedule read-back still uses the previously authorized
-manufacturer TCP service on port 8800; browser traffic uses HTTPS.
+Sessions live in memory, so a service restart or a move to the new hostname
+requires signing in again. Only the configured browser origin can submit edits.
+Schedule read-back still uses the previously authorized manufacturer TCP
+service on port 8800; browser traffic uses HTTPS.
 
 The application revision is explicitly pinned in `flake.nix`. To upgrade it,
 publish the reviewed SmartThermWeb commit, replace that revision, run
 `nix flake lock`, and build `.#nixosConfigurations.desktop.config.system.build.toplevel`.
-Commit and push the HomeServer changes to `master`; comin performs the switch.
-Do not run a separate temporary application server for normal use.
+Commit and push HomeServer changes through the required PR checks to `master`;
+comin performs the switch. Do not run a temporary application server for normal use.
 
 ```sh
-systemctl status smartthermweb
+systemctl status smartthermweb caddy tailscaled
 journalctl -u smartthermweb -n 50 --no-pager
 curl --fail http://127.0.0.1:3000/api/health
 ```
