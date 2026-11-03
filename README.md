@@ -242,8 +242,12 @@ Sign in with your OCSTAT account; credentials are not stored in Nix or SOPS.
 Sessions live in memory, so a service restart requires signing in again.
 
 `modules/smartthermweb.nix` configures the app on `127.0.0.1:3000` and adds its
-HTTPS Caddy host. Only the configured browser origin can submit edits. No new
-firewall port is opened. Schedule read-back still uses the previously authorized
+HTTPS Caddy host. Traefik owns external port 443, so a declarative k3s TCP route
+passes only `heating.homeserver.com` through to Caddy on port 8444. Caddy then
+proxies to the loopback app. Port 8444 is allowed on the cluster's `cni0`
+interface, not the LAN interface; the endpoint uses this single-node cluster's
+existing host address `10.42.0.1`. No other ingress routes are changed.
+Only the configured browser origin can submit edits. Schedule read-back still uses the previously authorized
 manufacturer TCP service on port 8800; browser traffic uses HTTPS.
 
 The application revision is explicitly pinned in `flake.nix`. To upgrade it,
