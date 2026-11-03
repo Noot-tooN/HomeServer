@@ -21,6 +21,12 @@
       # qBittorrent validates Host against its backend port. Normalize only
       # our own Origin/Referer; foreign origins stay unchanged and are rejected.
       requestGuards = ''
+        # After upstream login/logout sets the scoped SID, retire its old root
+        # cookie. Defer until after proxy rewriting so the deletion stays at /.
+        header {
+          +Set-Cookie "SID=; Path=/; Max-Age=0; Secure; HttpOnly; SameSite=Strict"
+          match header Set-Cookie *SID=*
+        }
         @foreignOrigin {
           header Origin *
           not header Origin ${origin}
