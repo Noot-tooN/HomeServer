@@ -241,15 +241,19 @@ Homer provides links to the existing services:
 | Service | Trusted URL | Backend |
 | --- | --- | --- |
 | Dashboard | `https://homeserver.tail0fa2e4.ts.net/` | Static Homer files in the Nix store |
-| Heating | `https://homeserver.tail0fa2e4.ts.net:8443/` | `127.0.0.1:3000` |
-| Torrents | `https://homeserver.tail0fa2e4.ts.net:8445/` | `127.0.0.1:8080` |
-| Media | `https://homeserver.tail0fa2e4.ts.net:8446/` | `127.0.0.1:8096` |
-| Jackett | `https://homeserver.tail0fa2e4.ts.net:8447/` | `127.0.0.1:9117` |
+| Heating | `https://homeserver.tail0fa2e4.ts.net/heating/` | `127.0.0.1:3000` |
+| Torrents | `https://homeserver.tail0fa2e4.ts.net/torrents/` | `127.0.0.1:8080` |
+| Media | `https://homeserver.tail0fa2e4.ts.net/media/` | `127.0.0.1:8096` |
+| Jackett | `https://homeserver.tail0fa2e4.ts.net/jackett/` | `127.0.0.1:9117` |
 
 `modules/home-dashboard.nix` owns the dashboard, service links, HTTPS proxies,
 and the heating app's allowed browser origin. Homer is served by the existing
 Caddy process; it has no separate application server, database, or API secrets.
-The ports let each service retain its existing root URL and authentication.
+All services share HTTPS port 443; their backend ports stay internal to the
+proxy. Heating, Jellyfin and Jackett use their configured URL prefixes;
+qBittorrent's prefix is stripped by Caddy and its cookie path is rewritten.
+Paths share a browser origin (unlike separate ports); cookie paths are not a
+security boundary. The former HTTPS service ports redirect to the new paths.
 For qBittorrent, Caddy normalizes the upstream Host and only the matching public
 Origin/Referer to its backend address. Foreign Origin/Referer headers are
 rejected before proxying. qBittorrent's host and CSRF checks stay enabled, and
@@ -265,7 +269,7 @@ not make the services publicly reachable. Tailscale access policy still applies.
 Traefik owns external ports 80/443 through k3s ServiceLB. The Nix-managed routes
 pass dashboard TLS through to Caddy on 8444 and HTTP to its redirect listener
 on 8081. These backend ports are allowed on `cni0`, with endpoint `10.42.0.1` for
-this single-node cluster. Service HTTPS ports use the existing trusted
+this single-node cluster. Access uses the existing trusted
 `tailscale0` interface; no additional LAN firewall ports are opened. HTTPS is
 terminated by Caddy, and application traffic then stays on the server.
 
@@ -274,6 +278,16 @@ HTTP visits redirect to HTTPS. The former `heating.homeserver.com`,
 new URLs. Old HTTPS bookmarks still need the old internal CA before a redirect
 can run, so replace them with the dashboard links. The local DNS aliases cannot
 get public certificates without ownership of that domain.
+
+Jellyfin's `network.xml` BaseUrl and Jackett's `ServerConfig.json`
+BasePathOverride are maintained by `scripts/service_base_path.py` in service
+pre-start hooks. It preserves other settings, writes atomically as the service
+user, and keeps a private `.before-subpath` backup before the first change.
+It fails on malformed settings rather than resetting them. If rolling back to
+root hosting, reset those two fields while the services are stopped; rolling
+back Nix alone does not revert persistent application settings. Media clients
+and Jackett integrations using direct backend URLs may need `/media` or
+`/jackett` added to their server URL.
 
 ### Heating application
 

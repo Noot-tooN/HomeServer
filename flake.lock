@@ -190,17 +190,17 @@
         "nixpkgs": "nixpkgs_4"
       },
       "locked": {
-        "lastModified": 1793699758,
-        "narHash": "sha256-bUyCJk8VzAxVXWwr4MQjzZqsqbRFQXk47F2H02oc1k8=",
+        "lastModified": 1793707420,
+        "narHash": "sha256-GxzaaMCEueS4ldAGq3Q3jQW5zfW1M8zWIJZmS9Ijdxk=",
         "owner": "Noot-tooN",
         "repo": "SmartThermWeb",
-        "rev": "3c93384bbd18172bacf2d5b01850d5a6ece2fd61",
+        "rev": "5ec0357f81cdb18a140a0ec9320630d97e5184ff",
         "type": "github"
       },
       "original": {
         "owner": "Noot-tooN",
         "repo": "SmartThermWeb",
-        "rev": "3c93384bbd18172bacf2d5b01850d5a6ece2fd61",
+        "rev": "5ec0357f81cdb18a140a0ec9320630d97e5184ff",
         "type": "github"
       }
     },
