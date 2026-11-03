@@ -69,6 +69,7 @@
         {services.comin.package = comin.packages.${system}.comin;}
         smartthermweb.nixosModules.default
         ./modules/smartthermweb.nix
+        ./modules/home-dashboard.nix
         ./hosts/desktop/configuration.nix
         home-manager.nixosModules.home-manager
 

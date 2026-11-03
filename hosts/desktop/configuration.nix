@@ -34,19 +34,6 @@
     };
   };
 
-  services.caddy = {
-    enable = true;
-
-    virtualHosts."torrent.homeserver.com".extraConfig = ''
-      tls internal
-      reverse_proxy http://127.0.0.1:8080
-    '';
-    virtualHosts."media.homeserver.com".extraConfig = ''
-      tls internal
-      reverse_proxy http://127.0.0.1:8096
-    '';
-  };
-
   services.tailscale = {
     enable = true;
     # Track security fixes ahead of the stable NixOS package.
