@@ -27,7 +27,7 @@
     };
 
     # Deploy a reviewed application revision; update deliberately with its lock entry.
-    smartthermweb.url = "github:Noot-tooN/SmartThermWeb/3c93384bbd18172bacf2d5b01850d5a6ece2fd61";
+    smartthermweb.url = "github:Noot-tooN/SmartThermWeb/5ec0357f81cdb18a140a0ec9320630d97e5184ff";
 
     # Home Manager for declarative user configuration
     home-manager = {
