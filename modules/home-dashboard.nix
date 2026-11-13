@@ -149,6 +149,15 @@ in {
     ) // {
       "https://${host}:8444".extraConfig = ''
         header Referrer-Policy same-origin
+        # Browsers use /favicon.ico when an app declares no icon. Homer has
+        # its own explicit icon URLs; serve the same host identity there too.
+        @favicons path /favicon.ico /favicon.svg /apple-touch-icon.png /assets/icons/favicon.ico /assets/icons/apple-touch-icon.png
+        handle @favicons {
+          uri strip_prefix /assets/icons
+          root * ${../assets/favicons}
+          header Cache-Control "public, max-age=3600"
+          file_server
+        }
         ${lib.concatMapStringsSep "\n" (app: ''
           redir ${app.path} ${app.path}/ 308
           ${if app.stripPrefix or false then "handle_path" else "handle"} ${app.path}/* {
