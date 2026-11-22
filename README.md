@@ -113,8 +113,18 @@ and published NodePorts, so new Kubernetes exposures also require review.
 This single-node cluster does not need LAN access to etcd, kubelet, or VXLAN
 ports. Tailscale's WireGuard transport port remains opened by its NixOS module.
 
+The LAN resolver at `192.168.0.200` serves the local `home.arpa` zone.
+The router can advertise this resolver through DHCP. Keep the server at
+`192.168.0.200` and the Pi at `192.168.0.177` using address reservations.
+
+| LAN HTTP address | Dashboard |
+| --- | --- |
+| `http://server.home.arpa/` | Homer |
+| `http://media.home.arpa/` | Jellyfin |
+| `http://rasppi.home.arpa/` | Pi dashboard and audio controls |
+
 The existing `*.homeserver.com` DNS records still point to the Tailscale IP;
-direct LAN access uses `192.168.0.200`. This change does not modify DNS routing.
+direct LAN access uses `192.168.0.200`.
 
 ### Recovery
 

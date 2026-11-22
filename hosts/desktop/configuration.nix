@@ -30,6 +30,12 @@
   services.dnsmasq = {
     enable = true;
     settings = {
+      local = "/home.arpa/";
+      host-record = [
+        "server.home.arpa,192.168.0.200"
+        "rasppi.home.arpa,192.168.0.177"
+      ];
+      cname = "media.home.arpa,server.home.arpa";
       "address" = ["/homeserver.com/100.82.238.95"];
     };
   };
