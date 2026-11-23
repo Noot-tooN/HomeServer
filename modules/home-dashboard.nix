@@ -62,31 +62,10 @@
       upstream = 9117;
     }
   ];
-  dashboardServices = mediaUrl: [{
-    items = map (app: {
-      inherit (app) name icon;
-      url = if app.path == "/media" then mediaUrl else "${origin}${app.path}/";
-    }) apps;
-  }];
-  lanConfig = (pkgs.formats.yaml {}).generate "homer-lan.yml" (config.services.homer.settings // {
-    services = dashboardServices "http://media.home.arpa/";
-  });
   legacyApps = builtins.filter (app: app ? legacyHost) apps;
   hosts = [host] ++ map (app: app.legacyHost) legacyApps;
-  httpHosts = hosts ++ ["server.home.arpa" "media.home.arpa"];
-  hostRule = lib.concatMapStringsSep " || " (name: "Host(`${name}`)") httpHosts;
+  hostRule = lib.concatMapStringsSep " || " (name: "Host(`${name}`)") hosts;
   sniRule = lib.concatMapStringsSep " || " (name: "HostSNI(`${name}`)") hosts;
-  favicons = ''
-    # Browsers use /favicon.ico when an app declares no icon. Homer has
-    # its own explicit icon URLs; serve the same host identity there too.
-    @favicons path /favicon.ico /favicon.svg /apple-touch-icon.png /assets/icons/favicon.ico /assets/icons/apple-touch-icon.png
-    handle @favicons {
-      uri strip_prefix /assets/icons
-      root * ${../assets/favicons}
-      header Cache-Control "public, max-age=3600"
-      file_server
-    }
-  '';
   metadata = name: {inherit name; namespace = "kube-system";};
   backendPorts = [
     {name = "https"; port = 8444; protocol = "TCP";}
@@ -129,7 +108,12 @@ in {
         layout = "list";
         colorTheme = "auto";
       };
-      services = dashboardServices "${origin}/media/";
+      services = [{
+        items = map (app: {
+          inherit (app) name icon;
+          url = "${origin}${app.path}/";
+        }) apps;
+      }];
     };
   };
 
@@ -163,23 +147,17 @@ in {
         '';
       }) hosts
     ) // {
-      "http://server.home.arpa:8081".extraConfig = ''
-        root * ${config.services.homer.package}
-        ${favicons}
-        handle_path /assets/config.yml {
-          root * ${lanConfig}
-          header Cache-Control no-store
-          file_server
-        }
-        file_server
-      '';
-      "http://media.home.arpa:8081".extraConfig = ''
-        redir / /media/ 302
-        reverse_proxy 127.0.0.1:8096
-      '';
       "https://${host}:8444".extraConfig = ''
         header Referrer-Policy same-origin
-        ${favicons}
+        # Browsers use /favicon.ico when an app declares no icon. Homer has
+        # its own explicit icon URLs; serve the same host identity there too.
+        @favicons path /favicon.ico /favicon.svg /apple-touch-icon.png /assets/icons/favicon.ico /assets/icons/apple-touch-icon.png
+        handle @favicons {
+          uri strip_prefix /assets/icons
+          root * ${../assets/favicons}
+          header Cache-Control "public, max-age=3600"
+          file_server
+        }
         ${lib.concatMapStringsSep "\n" (app: ''
           redir ${app.path} ${app.path}/ 308
           ${if app.stripPrefix or false then "handle_path" else "handle"} ${app.path}/* {
