@@ -55,6 +55,12 @@
       legacyHost = "media.homeserver.com";
     }
     {
+      name = "HolyArrs";
+      path = "/holyarrs";
+      icon = "fas fa-photo-film";
+      upstream = 6262;
+    }
+    {
       name = "Jackett";
       path = "/jackett";
       icon = "fas fa-magnifying-glass";
@@ -72,6 +78,7 @@
     {name = "http"; port = 8081; protocol = "TCP";}
   ];
 in {
+  systemd.services.holyarrs.environment.HOLYARRS_ALLOWED_HOSTS = host;
   services.smartthermweb.publicOrigin = origin;
   services.smartthermweb.basePath = "/heating";
 
@@ -127,7 +134,7 @@ in {
           redir @prefixed ${origin}{uri} 308
           redir ${origin}${app.path}{uri} 308
         '';
-      }) apps
+      }) (builtins.filter (app: app ? port) apps)
       ++ map (app: lib.nameValuePair "https://${app.legacyHost}:8444" {
         # An old HTTPS bookmark still needs the old CA before its redirect can
         # run. All dashboard links use the trusted Tailscale hostname instead.
