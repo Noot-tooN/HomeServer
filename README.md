@@ -244,6 +244,7 @@ Homer provides links to the existing services:
 | Heating | `https://homeserver.tail0fa2e4.ts.net/heating/` | `127.0.0.1:3000` |
 | Torrents | `https://homeserver.tail0fa2e4.ts.net/torrents/` | `127.0.0.1:8080` |
 | Media | `https://homeserver.tail0fa2e4.ts.net/media/` | `127.0.0.1:8096` |
+| HolyArrs | `https://homeserver.tail0fa2e4.ts.net/holyarrs/` | `127.0.0.1:6262` |
 | Jackett | `https://homeserver.tail0fa2e4.ts.net/jackett/` | `127.0.0.1:9117` |
 
 `modules/home-dashboard.nix` owns the dashboard, service links, HTTPS proxies,
@@ -288,6 +289,28 @@ root hosting, reset those two fields while the services are stopped; rolling
 back Nix alone does not revert persistent application settings. Media clients
 and Jackett integrations using direct backend URLs may need `/media` or
 `/jackett` added to their server URL.
+
+### HolyArrs first run
+
+1. Open **HolyArrs** on the dashboard and create the owner account. Settings and
+   credentials persist in `/var/lib/holyarrs`. Enter credentials in the app.
+2. In **Settings → Downloaders**, add qBittorrent at `http://127.0.0.1:8080`
+   with your Web UI credentials. Allow local network access for this connection,
+   use the dedicated category `holyarrs`, and select the option to leave torrents
+   seeding after import. Save and run **Test**. Both services see
+   `/srv/holyarrs-media/downloads` at the same path.
+3. In **Settings → Sources**, add Knaben or TorrentsCSV from **Built-in site**
+   and test each enabled source. Jackett is independent of this setup.
+4. Choose the applicable library folders under `/srv/holyarrs-media`:
+   `movies`, `shows` and `music`. In Jellyfin's library settings add those
+   folders to the matching libraries.
+5. In HolyArrs's media server settings, add Jellyfin at
+   `http://127.0.0.1:8096/media` with a dedicated Jellyfin API key. Allow the
+   local connection and run the connection test. Import a file you have
+   permission to use and verify it appears in Jellyfin.
+
+The NixOS module pins the upstream Linux executable. To check service readiness
+on the server, run `curl --fail http://127.0.0.1:6262/holyarrs/readyz`.
 
 ### Heating application
 
